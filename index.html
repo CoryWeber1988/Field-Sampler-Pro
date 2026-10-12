@@ -1298,7 +1298,15 @@ table.report-preview th{color:var(--parchment-dim);font-weight:700;font-size:10.
           <select id="fsxDemSrc">
             <option value="cdem">NRCan CDEM &mdash; datacube STAC (Canada-wide, ~16&ndash;30 m)</option>
             <option value="cop">Copernicus GLO-30 &mdash; Earth Search STAC (global, 30 m)</option>
+            <option value="hrdem">NRCan HRDEM LiDAR &mdash; datacube STAC (1&ndash;2 m, partial Canada coverage)</option>
           </select>
+        </div>
+        <div class="field hidden" id="fsxDemSurfWrap" style="margin-top:8px;"><label>HRDEM surface</label>
+          <select id="fsxDemSurf">
+            <option value="dtm">DTM &mdash; bare-earth terrain (recommended)</option>
+            <option value="dsm">DSM &mdash; surface incl. vegetation &amp; buildings</option>
+          </select>
+          <p class="hint" style="margin:6px 0 0;">Airborne LiDAR, heights in CGVD2013. Coverage is project-based and still expanding; if nothing is found for the field, use CDEM or Copernicus.</p>
         </div>
         <div class="row2"><button class="iconbtn" id="fsxDemSearch">&#128270; Search &amp; load</button><button class="iconbtn" id="fsxDemFileBtn">Upload GeoTIFF</button></div>
         <input type="file" id="fsxDemFile" accept=".tif,.tiff" style="display:none;">
@@ -2989,8 +2997,10 @@ function FSX_extent(bb, det, pad) {
   return { minx: bb[0] - d, maxx: bb[2] + d, miny: bb[1] - d, maxy: bb[3] + d };
 }
 async function FSX_readImg(img, bb, opt) {
-  const det = FSX_detectCode(img, opt.epsg);
-  const [ox, oy] = img.getOrigin(), [rx, ry] = img.getResolution(), ay = Math.abs(ry), W = img.getWidth(), H = img.getHeight();
+  const det = FSX_detectCode(opt.ref || img, opt.epsg);
+  let ox, oy;
+  try { [ox, oy] = img.getOrigin(); } catch (e) { [ox, oy] = opt.ref.getOrigin(); }
+  const [rx, ry] = img.getResolution(opt.ref || undefined), ay = Math.abs(ry), W = img.getWidth(), H = img.getHeight();
   let c0 = 0, r0 = 0, c1 = W, r1 = H;
   if (bb) {
     const ext = FSX_extent(bb, det, opt.pad || 0);
@@ -3006,6 +3016,39 @@ async function FSX_readImg(img, bb, opt) {
 }
 function FSX_s3(href) { return href.startsWith("s3://") ? "https://" + href.slice(5).replace("/", ".s3.us-west-2.amazonaws.com/") : href; }
 async function FSX_readCog(href, bb, opt) { const tiff = await GeoTIFF.fromUrl(FSX_s3(href)); return FSX_readImg(await tiff.getImage(), bb, opt); }
+/* NRCan HRDEM LiDAR (CanElevation): one STAC item per LiDAR project, each with
+   cloud-optimized DTM + DSM GeoTIFFs at 1 m or 2 m in a UTM / LCC projection. */
+const FSX_HR_SEARCH = ["https://datacube.services.geo.ca/stac/api/search", "https://datacube.services.geo.ca/pgstac/api/search"];
+async function FSX_hrSearch(bb) {
+  // GET first: a plain GET is a "simple" CORS request (no preflight), which is what the CDEM lookup already relies on.
+  const errs = [], q = "?collections=hrdem-lidar&limit=50&bbox=" + bb.map((v) => v.toFixed(6)).join(",");
+  for (const url of FSX_HR_SEARCH) {
+    for (const mode of ["GET", "POST"]) {
+      try {
+        const r = mode === "GET" ? await fetch(url + q, { headers: { Accept: "application/geo+json, application/json" } })
+          : await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ collections: ["hrdem-lidar"], bbox: bb, limit: 50 }) });
+        if (!r.ok) { errs.push(mode + " HTTP " + r.status); continue; }
+        const j = await r.json();
+        if (j && Array.isArray(j.features)) return j.features;
+        errs.push(mode + " unexpected response");
+      } catch (e) { errs.push(mode + " " + e.message); }
+    }
+  }
+  throw new Error("HRDEM catalogue search was blocked or failed (" + errs.slice(0, 2).join("; ") + ")");
+}
+const FSX_hrRes = (it) => { const m = /-(\d+(?:\.\d+)?)m$/.exec(it.id || ""); return m ? +m[1] : 2; };
+async function FSX_readHR(href, bb, epsg) {
+  let tiff, full;
+  try { tiff = await GeoTIFF.fromUrl(href); full = await tiff.getImage(); } catch (e) { throw new Error("could not open the LiDAR file " + href.split("/").pop() + " — " + e.message + " (the file server may not allow browser access)"); }
+  const det = FSX_detectCode(full, epsg), ext = FSX_extent(bb, det, 100);
+  const need = Math.max(ext.maxx - ext.minx, ext.maxy - ext.miny) / 3000;   // m per pixel that keeps the window <= ~3000 px
+  let img = full, ref = null;
+  const n = await tiff.getImageCount();
+  if (n > 1 && need > full.getResolution()[0] * 1.5) {
+    for (let i = 1; i < n; i++) { const o = await tiff.getImage(i); if (Math.abs(full.getResolution()[0] * full.getWidth() / o.getWidth()) <= need * 1.01) { img = o; ref = full; } else break; }
+  }
+  return FSX_readImg(img, bb, { pad: 100, epsg, minValid: -500, cap: 3000, ref });
+}
 function FSX_isBad(r, v) { return v == null || !Number.isFinite(v) || (r.nodata != null && v === r.nodata) || (r.minValid != null && v < r.minValid); }
 function FSX_sample(r, lng, lat) {
   let x = lng, y = lat;
@@ -3165,7 +3208,7 @@ ye("fsxDemFile").addEventListener("change", async (e) => {
     try { r = await FSX_readImg(img, wb, { minValid: -500, pad: 100, cap: 3000 }); } catch (err) { if (wb) { r = await FSX_readImg(img, null, { minValid: -500, cap: 3000 }); } else throw err; }
     let bb = FSX_rasterBBox(r);
     if (wb) { const px = (wb[2] - wb[0]) * 0.1, py = (wb[3] - wb[1]) * 0.1; bb = [Math.max(bb[0], wb[0] - px), Math.max(bb[1], wb[1] - py), Math.min(bb[2], wb[2] + px), Math.min(bb[3], wb[3] + py)]; if (bb[2] <= bb[0] || bb[3] <= bb[1]) bb = FSX_rasterBBox(r); }
-    FSX_demLoaded([r], "Uploaded GeoTIFF", bb);
+    FSX_DEM.src = "upload"; FSX_demLoaded([r], "Uploaded GeoTIFF", bb);
   } catch (err) { console.error(err); FSX_demStatus("Could not read elevation file"); Er("Could not read elevation GeoTIFF: " + err.message, "err"); }
 });
 ye("fsxDemSearch").addEventListener("click", async () => {
@@ -3181,6 +3224,21 @@ ye("fsxDemSearch").addEventListener("click", async () => {
       try { const r = await fetch("https://datacube.services.geo.ca/stac/api/collections/cdem/items/cdem-canada"); if (r.ok) { const j = await r.json(); if (j.assets && j.assets.dem && j.assets.dem.href) href = j.assets.dem.href; } } catch (e) { /* use default */ }
       FSX_demStatus("Reading NRCan CDEM window…");
       rasters = [await FSX_readCog(href, bb, { pad: 150, epsg: 3979, minValid: -500 })]; label = "NRCan CDEM";
+    } else if (ye("fsxDemSrc").value === "hrdem") {
+      const surf = ye("fsxDemSurf").value;
+      FSX_demStatus("Searching NRCan HRDEM LiDAR projects…");
+      const items = (await FSX_hrSearch(bb)).filter((it) => it.assets && it.assets[surf]);
+      if (!items.length) throw new Error("No HRDEM LiDAR coverage found for this field. HRDEM LiDAR is only available for projects NRCan has released so far — use CDEM or Copernicus instead.");
+      // finest resolution first, then newest — the first raster with a valid cell wins at each location
+      items.sort((a, b) => FSX_hrRes(a) - FSX_hrRes(b) || String(b.properties.datetime).localeCompare(String(a.properties.datetime)));
+      const use = items.slice(0, 8), used = [], fails = [];
+      FSX_demStatus(`Reading ${surf.toUpperCase()} from ${use.length} LiDAR project${use.length > 1 ? "s" : ""}…`);
+      const res = await Promise.allSettled(use.map((it) => FSX_readHR(it.assets[surf].href, bb, it.properties["proj:epsg"])));
+      res.forEach((x, i) => { if (x.status === "fulfilled") { rasters.push(x.value); used.push(use[i]); } else { console.warn(use[i].id, x.reason); fails.push(x.reason); } });
+      if (!rasters.length) throw new Error(fails.length && !/outside/i.test(fails[0].message) ? "Could not read the HRDEM " + surf.toUpperCase() + " (" + fails[0].message + ")" : "The field lies outside the released HRDEM LiDAR tiles.");
+      const yr = (it) => String(it.properties.datetime || "").slice(0, 4), rs = [...new Set(used.map(FSX_hrRes))].sort((a, b) => a - b).join("/");
+      label = `NRCan HRDEM ${surf.toUpperCase()} (${rs} m LiDAR, ${used.map((it) => it.id.replace(/-\d+(?:\.\d+)?m$/, "").replace(/_/g, " ") + " " + yr(it)).slice(0, 2).join("; ")}${used.length > 2 ? "…" : ""})`;
+      FSX_DEM.src = "hrdem";
     } else {
       const r = await fetch(FSX_STAC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ collections: ["cop-dem-glo-30"], bbox: bb, limit: 10 }) });
       if (!r.ok) throw new Error("STAC search returned HTTP " + r.status);
@@ -3193,19 +3251,22 @@ ye("fsxDemSearch").addEventListener("click", async () => {
       if (!rasters.length) throw new Error("Could not read any DEM tile.");
       label = "Copernicus GLO-30";
     }
+    if (ye("fsxDemSrc").value !== "hrdem") FSX_DEM.src = ye("fsxDemSrc").value;
     FSX_demLoaded(rasters, label, bb);
   } catch (err) {
     console.error(err); FSX_demStatus("DEM search failed");
-    Er("DEM search failed: " + err.message + " — if it's a network/CORS problem try the other source, or upload your own elevation GeoTIFF.", "err");
+    Er("DEM search failed: " + err.message + " — if it's a network/CORS problem try another source, or upload your own elevation GeoTIFF.", "err");
   } finally { btn.disabled = false; }
 });
+ye("fsxDemSrc").addEventListener("change", () => { ye("fsxDemSurfWrap").classList.toggle("hidden", ye("fsxDemSrc").value !== "hrdem"); });
+ye("fsxDemSurf").addEventListener("change", () => { if (FSX_DEM.rasters && FSX_DEM.src === "hrdem") ye("fsxDemSearch").click(); });
 ye("fsxDemRamp").innerHTML = Object.keys(FSX_RAMPS).map((k) => `<option value="${k}">${FSX_RAMPS[k].label}</option>`).join("");
 ye("fsxDemRamp").addEventListener("change", (e) => { FSX_DEM.ramp = e.target.value; FSX_demRender(); });
 ye("fsxDemOp").addEventListener("input", (e) => { FSX_DEM.opacity = +e.target.value / 100; if (FSX_DEM.overlay) FSX_DEM.overlay.setOpacity(FSX_DEM.opacity); });
 ye("fsxDemShow").addEventListener("change", (e) => { FSX_DEM.show = e.target.checked; if (FSX_DEM.show) FSX_demRender(); else if (FSX_DEM.overlay) { or.removeLayer(FSX_DEM.overlay); FSX_DEM.overlay = null; } });
 ye("fsxDemClipChk").addEventListener("change", (e) => { FSX_DEM.clip = e.target.checked; if (FSX_DEM.show) FSX_demRender(); });
 ye("fsxDemClear").addEventListener("click", () => {
-  FSX_DEM.rasters = null; FSX_DEM.bbox = null; FSX_demRender(); FSX_demStatus("No elevation loaded"); FSX_demButtons();
+  FSX_DEM.rasters = null; FSX_DEM.bbox = null; FSX_DEM.src = null; FSX_demRender(); FSX_demStatus("No elevation loaded"); FSX_demButtons();
 });
 ye("fsxDemDl").addEventListener("click", () => {
   if (!FSX_DEM.rasters) return;
