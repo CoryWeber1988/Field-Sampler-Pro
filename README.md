@@ -15,32 +15,6 @@ A single-file, browser-based tool for planning and collecting soil samples in th
 - **Exports:** bulk GeoJSON and PDF report for the whole project, plus per-layer exports (Shapefile, GeoJSON, CSV, KML, GPX) for points, zones and subsample pins.
 - **Projects:** save/open `.fsproj` files. Works offline once loaded (basemap tiles and online elevation need a connection).
 
-## Run locally
-
-Open `index.html` in a browser. GPS features need a secure context, so for those serve it over localhost:
-
-```bash
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
-
-## Deploy to GitHub Pages
-
-1. Create a repo and push these files to the `main` branch.
-2. In the repo go to **Settings → Pages → Build and deployment → Source** and choose **GitHub Actions**.
-3. The workflow in `.github/workflows/pages.yml` publishes the site on every push to `main`. Run it by hand from the **Actions** tab if needed.
-
-The site will be at `https://<your-username>.github.io/<repo-name>/`. Pages is served over HTTPS, so GPS works there.
-
-## Repo layout
-
-| File | Purpose |
-| --- | --- |
-| `index.html` | The whole app (code and libraries bundled in one file) |
-| `.github/workflows/pages.yml` | GitHub Pages deployment |
-| `.nojekyll` | Tells Pages to serve the file as-is |
-| `.gitignore` | Ignores OS/editor/scratch files |
-
 ## Notes
 
 - The app code in `index.html` is a minified bundle. Edit it with care, or keep the original source project and rebuild.
