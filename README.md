@@ -1,6 +1,6 @@
 # Field Sampler
 
-A single-file, browser-based tool for planning and collecting soil samples in the field. No server, no build step, no install: everything runs client-side in `index.html`.
+A single-file, browser-based tool for planning and collecting soil samples in the field. No server, no build step, no install: everything runs client-side in `index.html`.  All information is browser stored and cleared when the browser is closed or refreshed.
 
 ## Help
 
@@ -30,39 +30,13 @@ The full user guide, including a list of every online dataset and link the tool 
 - **Basemap:** Satellite imagery is the default background. Choose **No tiles (offline)** for use with no signal.
 - **Mode banner:** the orange bar at the top of the map shows the current action (drawing, recording, dropping pins) with its Finish / Cancel buttons; it wraps on small screens and stays clear of the map controls.
 
-## Run locally
 
-Open `index.html` in a browser. GPS features need a secure context, so for those serve it over localhost:
+## Run via GitHub Pages
 
-```bash
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
-
-## Deploy to GitHub Pages
-
-1. Create a repo and push these files to the `main` branch.
-2. In the repo go to **Settings → Pages → Build and deployment → Source** and choose **GitHub Actions**.
-3. The workflow in `.github/workflows/pages.yml` publishes the site on every push to `main`. Run it by hand from the **Actions** tab if needed.
-
-The site will be at `https://<your-username>.github.io/<repo-name>/`. Pages is served over HTTPS, so GPS works there.
+The site will be at `https://<your-username>.github.io/<repo-name>/`.
 
 ## Repo layout
 
-| File | Purpose |
-| --- | --- |
-| `index.html` | The whole app (code, libraries and the in-app help, bundled in one file) |
-| `HELP.md` | User guide and list of online data sources (the in-app help is generated from the same content) |
-| `docs/add-gem15-elevation-prompt.md` | Reusable prompt for adding the Google GEM-15 elevation source to other single-file HTML tools |
-| `LICENSE` | GNU AGPLv3 (or later) |
-| `CONTRIBUTING.md` | How to report bugs, suggest features and submit changes |
-| `CLA.md`, `CLA-ENTITY.md` | Contributor License Agreements (individual / company) |
-| `THIRD_PARTY_NOTICES.md` | Licences of the libraries bundled in `index.html` |
-| `.github/workflows/pages.yml` | GitHub Pages deployment |
-| `.github/workflows/cla.yml` | CLA Assistant bot (asks contributors to sign `CLA.md`) |
-| `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md` | Issue and pull request templates |
-| `.nojekyll` | Tells Pages to serve the file as-is |
-| `.gitignore` | Ignores OS/editor/scratch files |
 
 ## Notes
 
