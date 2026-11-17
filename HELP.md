@@ -118,6 +118,10 @@ These are every online service Field Sampler can contact. All are public and nee
 
 These are included inside the page, so they work offline: [Leaflet](https://leafletjs.com) (maps), geotiff.js (GeoTIFF reading), proj4 (map projections), [jsPDF](https://github.com/MrRio/jsPDF) (PDF reports), JSZip (zip files), [pako](https://github.com/nodeca/pako) (compression) and [PapaParse](https://github.com/mholt/PapaParse) (CSV). Licences are kept in the page source.
 
+## License and source
+
+Field Sampler is free software, copyright (C) 2026 Cory Weber, licensed under the GNU Affero General Public License v3.0 or later. It comes with **no warranty**. You may redistribute and modify it under that licence, and anyone using a modified version over a network must be offered its source. The licence text is in [LICENSE](LICENSE), the source code is in this repository, and bundled library licences are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Accuracy
 
 Field Sampler is a planning and field-recording aid. Positions, boundaries, areas, grids, zones and map layers are approximate. Phone GPS is often accurate only to a few metres, and public satellite and elevation layers (Sentinel-2 at 10 to 20 m, elevation at 1 to 30 m) can be affected by cloud, shadow, timing and processing. Zones are statistical groupings, not agronomic, financial, legal or survey advice. Verify results on the ground.

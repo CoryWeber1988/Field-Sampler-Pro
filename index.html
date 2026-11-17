@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Field Sampler. Copyright (C) 2026 Cory Weber. SPDX-License-Identifier: AGPL-3.0-or-later. See LICENSE and THIRD_PARTY_NOTICES.md. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1641,7 +1642,7 @@ table.fsp-zt th{color:var(--parchment-dim);font-size:10px;text-transform:upperca
 <div class="fsp-helpbar"><div class="fsp-mark">FIELD SAMPLER</div><button class="iconbtn primary" id="fspHelpClose">Close help</button></div>
 <h1>Field Sampler: Help and data sources</h1>
 <p class="fsp-lead">Field Sampler is a single-file, browser-based tool for planning and collecting soil samples. Everything runs on your device; nothing is uploaded. Only the satellite, elevation and basemap sources listed in <a href="#fsp-h-sources">Online data sources</a> are contacted, and only when you ask for them.</p>
-<nav class="fsp-toc"><a href="#fsp-h-quick">Quick start</a> <a href="#fsp-h-plan">Plan tab, step by step</a> <a href="#fsp-h-collect">Collect tab</a> <a href="#fsp-h-save">Saving, exporting and working offline</a> <a href="#fsp-h-trouble">Troubleshooting</a> <a href="#fsp-h-sources">Online data sources and links</a> <a href="#fsp-h-libs">Bundled libraries (no network needed)</a> <a href="#fsp-h-accuracy">Accuracy</a></nav>
+<nav class="fsp-toc"><a href="#fsp-h-quick">Quick start</a> <a href="#fsp-h-plan">Plan tab, step by step</a> <a href="#fsp-h-collect">Collect tab</a> <a href="#fsp-h-save">Saving, exporting and working offline</a> <a href="#fsp-h-trouble">Troubleshooting</a> <a href="#fsp-h-sources">Online data sources and links</a> <a href="#fsp-h-libs">Bundled libraries (no network needed)</a> <a href="#fsp-h-license">License and source</a> <a href="#fsp-h-accuracy">Accuracy</a></nav>
 <section class="fsp-hsec" id="fsp-h-quick"><h2>Quick start</h2>
 <ol><li>Open the tool, choose <b>Metric</b> or <b>Imperial</b>, and tick the accuracy disclaimer. Then pick <b>Plan your own</b> (build a plan from boundary, imagery and terrain) or <b>Load an existing sample plan</b> (go straight to collecting). <b>Open a saved project</b> reopens a <code>.fsproj</code> file.</li><li><b>Plan tab:</b> set the field boundary, search Sentinel-2 imagery, load an elevation source, calculate terrain layers, cluster a layer into zones, then build a grid, composite or sample points.</li><li><b>Send to Collection</b> at the end of planning. Imagery and terrain become background layers; zone maps become zone sampling layers.</li><li><b>Collect tab:</b> check off points as you sample, drop subsample pins, add notes and edit points. Export or save the project when you are done.</li><li>The home button (house icon) in the header returns to the welcome page. The <b>?</b> button opens this help.</li></ol>
 </section>
@@ -1680,6 +1681,9 @@ table.fsp-zt th{color:var(--parchment-dim);font-size:10px;text-transform:upperca
 </section>
 <section class="fsp-hsec" id="fsp-h-libs"><h2>Bundled libraries (no network needed)</h2>
 <p>These are included inside the page, so they work offline: <a href="https://leafletjs.com" target="_blank" rel="noopener noreferrer">Leaflet</a> (maps), geotiff.js (GeoTIFF reading), proj4 (map projections), <a href="https://github.com/MrRio/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a> (PDF reports), JSZip (zip files), <a href="https://github.com/nodeca/pako" target="_blank" rel="noopener noreferrer">pako</a> (compression) and <a href="https://github.com/mholt/PapaParse" target="_blank" rel="noopener noreferrer">PapaParse</a> (CSV). Licences are kept in the page source.</p>
+</section>
+<section class="fsp-hsec" id="fsp-h-license"><h2>License and source</h2>
+<p>Field Sampler is free software, copyright &copy; 2026 Cory Weber, licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer">GNU Affero General Public License v3.0 or later</a>. It comes with <b>no warranty</b>. You may redistribute and modify it under that licence, and anyone using a modified version over a network must be offered its source. <a href="GITHUB_REPO_URL" target="_blank" rel="noopener noreferrer">Source code, licence text and third-party notices</a>.</p>
 </section>
 <section class="fsp-hsec" id="fsp-h-accuracy"><h2>Accuracy</h2>
 <p>Field Sampler is a planning and field-recording aid. Positions, boundaries, areas, grids, zones and map layers are approximate. Phone GPS is often accurate only to a few metres, and public satellite and elevation layers (Sentinel-2 at 10 to 20 m, elevation at 1 to 30 m) can be affected by cloud, shadow, timing and processing. Zones are statistical groupings, not agronomic, financial, legal or survey advice. Verify results on the ground.</p>

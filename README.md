@@ -54,7 +54,13 @@ The site will be at `https://<your-username>.github.io/<repo-name>/`. Pages is s
 | `index.html` | The whole app (code, libraries and the in-app help, bundled in one file) |
 | `HELP.md` | User guide and list of online data sources (the in-app help is generated from the same content) |
 | `docs/add-gem15-elevation-prompt.md` | Reusable prompt for adding the Google GEM-15 elevation source to other single-file HTML tools |
+| `LICENSE` | GNU AGPLv3 (or later) |
+| `CONTRIBUTING.md` | How to report bugs, suggest features and submit changes |
+| `CLA.md`, `CLA-ENTITY.md` | Contributor License Agreements (individual / company) |
+| `THIRD_PARTY_NOTICES.md` | Licences of the libraries bundled in `index.html` |
 | `.github/workflows/pages.yml` | GitHub Pages deployment |
+| `.github/workflows/cla.yml` | CLA Assistant bot (asks contributors to sign `CLA.md`) |
+| `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md` | Issue and pull request templates |
 | `.nojekyll` | Tells Pages to serve the file as-is |
 | `.gitignore` | Ignores OS/editor/scratch files |
 
@@ -65,3 +71,11 @@ The site will be at `https://<your-username>.github.io/<repo-name>/`. Pages is s
 - Loaded elevation data is not stored in `.fsproj` project files; reload it after opening a project.
 - **Google GEM-15** is read from a public Google Cloud Storage bucket through the bucket's JSON API (`storage/v1/b/<bucket>/o/<object>?alt=media`), because plain `storage.googleapis.com/<bucket>/<object>` links send no CORS headers. See [HELP.md](HELP.md#online-data-sources-and-links).
 - When you change the help text, update both `HELP.md` and the `helpPage` block in `index.html` (between the `HELP BEGIN` / `HELP END` comments) so they stay in sync.
+
+## License
+
+Copyright (C) 2026 Cory Weber. Field Sampler is free software licensed under the [GNU Affero General Public License v3.0 or later](LICENSE). If you run a modified version as a network service, AGPLv3 section 13 requires you to offer its source to your users. Bundled third-party libraries keep their own licences; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Contributing
+
+Bug reports, feature ideas and pull requests are welcome; please read [CONTRIBUTING.md](CONTRIBUTING.md) first. Contributions are made under the [Contributor License Agreement](CLA.md).
