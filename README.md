@@ -1,6 +1,6 @@
 # Field Sampler Pro
 
-A single-file, browser-based tool for planning and collecting soil samples in the field. No server, no build step, no install: everything runs client-side in `index.html`.  All information is browser stored and cleared when the browser is closed or refreshed.
+A single-file, browser-based tool for planning and collecting soil samples in the field. No server, no build step, no install: everything runs client-side in `index.html`.  All information is browser stored and cleared when the browser is closed or refreshed.   Available at https://coryweber1988.github.io/Field-Sampler-Pro/
 
 ## Help
 
@@ -33,9 +33,7 @@ The full user guide, including a list of every online dataset and link the tool 
 
 ## Run via GitHub Pages
 
-The site will be at `https://<your-username>.github.io/<repo-name>/`.
-
-## Repo layout
+The site will be at `https://coryweber1988.github.io/Field-Sampler-Pro/`.
 
 
 ## Notes
